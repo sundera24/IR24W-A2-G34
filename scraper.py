@@ -18,12 +18,16 @@ def extract_next_links(url, resp):
     # Return a list with the hyperlinks (as strings) scrapped from resp.raw_response.content
     links = []
     try:
-        if 399>=resp.status>=200:
-            parse_url=urlparse(url)
-            bs=BeautifulSoup(resp.raw_response.content,'html.parser')
+        if 399>=resp.status>=200: # redirects are code 301, 302; decide whether to limit to 300>=status
+            parse_url = urlparse(url)
+            bs = BeautifulSoup(resp.raw_response.content,'html.parser')
             for new_url in bs.find_all('a'):
                 try:
-                    links.append(urldefrag(urljoin(parse_url.scheme+"://"+parse_url.netloc,new_url['href']))[0])
+                    processed = urldefrag(urljoin(parse_url.scheme+"://"+parse_url.netloc,new_url['href']))[0]
+                    # if '?' in processed:
+                    #     processed = processed.split("?")[0]
+                    # Do we need to filter queries??
+                    links.append(processed)
                 except KeyError:
                     print(f'Status Code: {resp.status}')
     except AttributeError:
@@ -38,6 +42,15 @@ def is_valid(url):
         parsed = urlparse(url)
         if parsed.scheme not in set(["http", "https"]):
             return False
+        if not re.match(
+                r".*\.(ics\.uci\.edu"
+                + r"|cs\.uci\.edu"
+                + r"|informatics\.uci\.edu"
+                + r"|stat\.uci\.edu)", parsed.netloc.lower()):
+            return False
+
+        # Potentially temporarily filter out swiki just to examine the rest of the functionality
+
         return not re.match(
             r".*\.(css|js|bmp|gif|jpe?g|ico"
             + r"|png|tiff?|mid|mp2|mp3|mp4"
