@@ -1,6 +1,8 @@
 import re
 from urllib.parse import urlparse
 
+unique_links = set()
+
 def scraper(url, resp):
     links = extract_next_links(url, resp)
     return [link for link in links if is_valid(link)]
@@ -15,7 +17,32 @@ def extract_next_links(url, resp):
     #         resp.raw_response.url: the url, again
     #         resp.raw_response.content: the content of the page!
     # Return a list with the hyperlinks (as strings) scrapped from resp.raw_response.content
+<<<<<<< Updated upstream
     return list()
+=======
+    links = []
+    try:
+        if 399>=resp.status>=200:
+            parse_url=urlparse(url)
+            bs=BeautifulSoup(resp.raw_response.content,'html.parser')
+            for new_url in bs.find_all('a'):
+                # new_url = new_url.get('href')
+                # if new_url.startswith("h"):
+                #     links.append(new_url)
+                # else:
+                try:
+                    links.append(urldefrag(urljoin(parse_url.scheme+"://"+parse_url.netloc,new_url['href']))[0])
+                except KeyError:
+                    print(f'Status Code: {resp.status}')
+    except AttributeError:
+        print(f'Status Code: {resp.status}\nError: {resp.error}')
+    unique_links_sub = []
+    for link in links:
+        if link not in unique_links:
+            unique_links.add(link)
+            unique_links_sub.append(link)
+    return unique_links_sub
+>>>>>>> Stashed changes
 
 def is_valid(url):
     # Decide whether to crawl this url or not. 
@@ -23,7 +50,10 @@ def is_valid(url):
     # There are already some conditions that return False.
     try:
         parsed = urlparse(url)
-        if parsed.scheme not in set(["http", "https"]):
+        # if parsed.scheme not in set(["http", "https"]):
+        #     return False
+        # If the domain does not match the following domains, than ignore it
+        if parsed.scheme not in set(["http", "https"]) and parsed.netloc not in set(["ics.uci.edu", "cs.uci.edu", "informatics.uci.edu", "stat.uci.edu"]):
             return False
         return not re.match(
             r".*\.(css|js|bmp|gif|jpe?g|ico"
