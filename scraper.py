@@ -1,4 +1,5 @@
 import re
+from urllib import robotparser
 from urllib.parse import urlparse, urljoin, urldefrag
 from bs4 import BeautifulSoup
 import time
@@ -6,6 +7,9 @@ import nltk
 import pickle
 from collections import defaultdict
 from nltk.corpus import stopwords
+from urllib.parse import urljoin
+from urllib.robotparser import RobotFileParser
+import xml.etree.ElementTree as ET
 
 
 visitedURLs = []
@@ -62,8 +66,11 @@ def extract_next_links(url, resp):
                     links.append(processed)
                 except KeyError:
                     print(f'Status Code: {resp.status}\nError: No href')
+
+
     except AttributeError:
         print(f'Status Code: {resp.status}\nError: {resp.error}')
+
     return links
 
 def extract_content(url, resp):
@@ -123,3 +130,39 @@ def is_valid(url):
         print ("TypeError for ", parsed)
         raise
 
+
+def checkRobotsTXT1(parsed_url):
+    #initate robot parser
+    rp = robotparser.RobotFileParser()
+
+    #navigate to robots file
+    rp.set_url(f"{parsed_url.scheme}://{parsed_url.netloc}"+"/robots.txt")
+
+    try: rp.read()
+    #file might not exist
+    except Exception as e: 
+        return False
+    
+    #check if robots.txt can crawl page
+    allowed = rp.can_fetch("robots.txt", parsed_url)
+
+    return True if allowed else False
+
+
+def parse_sitemap_xml(parsed_url):
+    #navigate to sitemap
+    sitemap_url = urljoin(parsed_url.scheme + "://" + parsed_url.netloc, "/sitemap.xml")
+    sitemap_xml = sitemap_url.content
+    #extract xlm elements
+    root = ET.fromstring(sitemap_xml)   
+    urls = []
+    #go through tree
+    for child in root:
+        loc = child.find('{http://www.sitemaps.org/schemas/sitemap/0.9}loc').text
+        urls.append(loc)
+        #returning a list of site_maps from main sitemap
+    return urls
+
+def extract_new_links_from_xml(xml_file_list):
+    
+    pass
