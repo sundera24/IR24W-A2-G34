@@ -115,7 +115,8 @@ def is_valid(url):
             + r"|data|dat|exe|bz2|tar|msi|bin|7z|psd|dmg|iso"
             + r"|epub|dll|cnf|tgz|sha1|apk|java|db"
             + r"|thmx|mso|arff|rtf|jar|csv|ppsx|sql|war"
-            + r"|rm|smil|wmv|swf|wma|zip|rar|gz)$", parsed.path.lower())
+            + r"|rm|smil|wmv|swf|wma|zip|rar|gz"
+            + r"|sqlite|vmdk|vhd)$", parsed.path.lower())
             # Updated to reflect more irrelevant/problematic file types
 
     except TypeError:
