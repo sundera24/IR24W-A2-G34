@@ -52,10 +52,13 @@ def extract_next_links(url, resp):
             if "ics.uci.edu" in parse_url.netloc:
                 if "https://"+parse_url.netloc in subdomains.keys():
                     subdomains["https://"+parse_url.netloc]+=1
+
                 elif "http://"+parse_url.netloc in subdomains.keys():
                     subdomains["http://" + parse_url.netloc] += 1
                 else:
                     subdomains[parse_url.scheme+"://" + parse_url.netloc] += 1
+                    #recursively add
+                    # parse_sitemap_xml(parse_url)
             bs = BeautifulSoup(resp.raw_response.content,'html.parser')
             for new_url in bs.find_all('a'):
                 try:
@@ -112,8 +115,11 @@ def is_valid(url):
                 + r"|stat\.uci\.edu)", parsed.netloc.lower()):
             return False
 
-        # Potentially temporarily filter out swiki just to examine the rest of the functionality
+        #Check for robots.txt permission
+        if not checkRobotsTXT1(parsed): return False
 
+        # Potentially temporarily filter out swiki just to examine the rest of the functionality
+        
         return not re.match(
             r".*\.(css|js|bmp|gif|jpe?g|ico"
             + r"|png|tiff?|mid|mp2|mp3|mp4"
@@ -126,6 +132,7 @@ def is_valid(url):
             + r"|sqlite|vmdk|vhd)$", parsed.path.lower())
             # Updated to reflect more irrelevant/problematic file types
 
+        
     except TypeError:
         print ("TypeError for ", parsed)
         raise
