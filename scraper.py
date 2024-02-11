@@ -2,6 +2,8 @@ import re
 from urllib.parse import urlparse, urljoin, urldefrag
 from bs4 import BeautifulSoup
 
+visited_urls = set()
+
 def scraper(url, resp):
     links = extract_next_links(url, resp)
     return [link for link in links if is_valid(link)]
@@ -24,10 +26,12 @@ def extract_next_links(url, resp):
             for new_url in bs.find_all('a'):
                 try:
                     processed = urldefrag(urljoin(parse_url.scheme+"://"+parse_url.netloc,new_url['href']))[0]
-                    # if '?' in processed:
-                    #     processed = processed.split("?")[0]
+                    if '?' in processed:
+                        processed = processed.split("?")[0]
                     # Do we need to filter queries??
-                    links.append(processed)
+                    if processed not in visited_urls:
+                        visited_urls.add(processed)
+                        links.append(processed)
                 except KeyError:
                     print(f'Status Code: {resp.status}')
     except AttributeError:
@@ -40,7 +44,7 @@ def is_valid(url):
     # There are already some conditions that return False.
     try:
         parsed = urlparse(url)
-        if parsed.scheme not in set(["http", "https"]) and parsed.netloc not in set(["ics.uci.edu", "cs.uci.edu", "informatics.uci.edu", "stat.uci.edu"]):
+        if parsed.scheme not in set(["http", "https"]):
             return False
         if not re.match(
                 r".*\.(ics\.uci\.edu"
@@ -48,18 +52,19 @@ def is_valid(url):
                 + r"|informatics\.uci\.edu"
                 + r"|stat\.uci\.edu)", parsed.netloc.lower()):
             return False
-
+        
         # Potentially temporarily filter out swiki just to examine the rest of the functionality
 
         return not re.match(
             r".*\.(css|js|bmp|gif|jpe?g|ico"
             + r"|png|tiff?|mid|mp2|mp3|mp4"
             + r"|wav|avi|mov|mpeg|ram|m4v|mkv|ogg|ogv|pdf"
-            + r"|ps|eps|tex|ppt|pptx|doc|docx|xls|xlsx|names"
+            + r"|ps|eps|tex|ppt|pptx|ppsx|doc|docx|xls|xlsx|names"
             + r"|data|dat|exe|bz2|tar|msi|bin|7z|psd|dmg|iso"
-            + r"|epub|dll|cnf|tgz|sha1"
-            + r"|thmx|mso|arff|rtf|jar|csv"
+            + r"|epub|dll|cnf|tgz|sha1|apk|db|java"
+            + r"|thmx|mso|arff|rtf|jar|csv|sql|war"
             + r"|rm|smil|wmv|swf|wma|zip|rar|gz)$", parsed.path.lower())
+            # Added db, apk, ppsx (powerpoint variant), sql, war, java
 
     except TypeError:
         print ("TypeError for ", parsed)
