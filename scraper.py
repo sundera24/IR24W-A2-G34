@@ -1,7 +1,11 @@
 import re
-from urllib.parse import urlparse
+from urllib.parse import urlparse, urljoin, urldefrag
+from bs4 import BeautifulSoup
 
-unique_links = set()
+unique_links = []
+word_map = {}
+counter = 0
+url_with_big_counter = ""
 
 def scraper(url, resp):
     links = extract_next_links(url, resp)
@@ -39,10 +43,11 @@ def extract_next_links(url, resp):
     unique_links_sub = []
     for link in links:
         if link not in unique_links:
-            unique_links.add(link)
+            unique_links.append(link)
             unique_links_sub.append(link)
+            html_word_extractor(link)
     return unique_links_sub
->>>>>>> Stashed changes
+    # return links
 
 def is_valid(url):
     # Decide whether to crawl this url or not. 
@@ -55,16 +60,47 @@ def is_valid(url):
         # If the domain does not match the following domains, than ignore it
         if parsed.scheme not in set(["http", "https"]) and parsed.netloc not in set(["ics.uci.edu", "cs.uci.edu", "informatics.uci.edu", "stat.uci.edu"]):
             return False
+
+        # Potentially temporarily filter out swiki just to examine the rest of the functionality
+        # if "swiki" in parsed.netloc:
+        #     return False
+
         return not re.match(
-            r".*\.(css|js|bmp|gif|jpe?g|ico"
-            + r"|png|tiff?|mid|mp2|mp3|mp4"
-            + r"|wav|avi|mov|mpeg|ram|m4v|mkv|ogg|ogv|pdf"
-            + r"|ps|eps|tex|ppt|pptx|doc|docx|xls|xlsx|names"
-            + r"|data|dat|exe|bz2|tar|msi|bin|7z|psd|dmg|iso"
-            + r"|epub|dll|cnf|tgz|sha1"
-            + r"|thmx|mso|arff|rtf|jar|csv"
-            + r"|rm|smil|wmv|swf|wma|zip|rar|gz)$", parsed.path.lower())
+            r".*\.(css|js|bmp|gif|jpe?g|ico|png|tiff?|mid|mp2|mp3|mp4|wav|avi|mov|"
+            r"mpeg|ram|m4v|mkv|ogg|ogv|pdf|ps|eps|tex|ppt|pptx|doc|docx|xls|xlsx|"
+            r"names|data|dat|exe|bz2|tar|msi|bin|7z|psd|dmg|iso|epub|dll|cnf|tgz|"
+            r"sha1|thmx|mso|arff|rtf|jar|csv|rm|smil|wmv|swf|wma|zip|rar|gz)$"
+            r"|sqlite|db|cfg|conf|bak|tmp|sh|py|ttf|otf|vmdk|vhd$", parsed.path.lower())
 
     except TypeError:
         print ("TypeError for ", parsed)
-        raise
+    
+def return_unique_links_count():
+    return len(unique_links)
+
+def html_word_extractor(url):
+    parse_url = urlparse(url)
+    bs = BeautifulSoup(resp.raw_response.content,'html.parser')
+    words = []
+    for content in bs.findAll(text=True):
+        words.extend(re.findall(r'\b\w+\b', content))
+    token_list = []
+    for word in words:
+        try:
+            boolean = re.match(r'^[.,-]*([a-zA-Z0-9-]+)[.,-]*$', word)
+            if boolean:
+                token_list.append(boolean.group(1).lower())
+        except:
+            pass
+    if (len(token_list) > counter):
+        counter = len(token_list)
+        url_with_big_counter = str(url)
+    return token_list
+
+def computeWordFrequencies(List):
+    for token in List:
+        if token not in word_map.keys():
+            word_map[token] = 1
+        else:
+            word_map[token] += 1 
+    return word_map
