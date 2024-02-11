@@ -12,17 +12,44 @@ visitedURLs = []
 words_dict=defaultdict(int)
 longest_url=('',0)
 subdomains=defaultdict(int)
+hashes=[]
 
 nltk.download('stopwords')
 stopwords = stopwords.words('english')
 
 def scraper(url, resp):
     links = extract_next_links(url, resp)
-    '''print(f'visited urls: {visitedURLs} {len(visitedURLs)}\nwords_dict: {sorted(words_dict.items(), key=lambda kv: -kv[1])[:50]}'
-          f'\nlongest_url: {longest_url}\n subdomains: {subdomains}')'''
+    #print(f'visited urls: {visitedURLs} {len(visitedURLs)}\nwords_dict: {sorted(words_dict.items(), key=lambda kv: -kv[1])[:50]}'
+    #      f'\nlongest_url: {longest_url}\n subdomains: {subdomains}')
     with open('output.pkl', 'wb') as file:  # export global variables with pickle
         pickle.dump([visitedURLs, words_dict, longest_url, subdomains], file)
     return [link for link in links if is_valid(link)]
+
+def computeWordFrequencies(tokens) -> defaultdict:
+    """Runtime complexity: O(n) average case where n is the length of tokens"""
+    freq = defaultdict(int)
+    for i in tokens:  # O(n) iterations, increment is O(1)
+        freq[i] += 1  # increments frequency of the selected token by 1, starting at 0 as default
+    return freq
+
+def simhash(tokens):
+    hashed=[]
+    for key,value in tokens.items():
+        hashed.append(((hash(key)%256),value))
+    for i, num in enumerate(hashed):
+        hashed[i] = ([1 if num[0] & (1 << (7 - n)) else 0 for n in range(8)],num[1])
+    vector=[]
+    index=0
+    while index<8:
+        temp=0
+        for h in hashed:
+            if h[0][index]==1:
+                temp = temp+h[1]
+            else:
+                temp = temp+(-1*h[1])
+        vector.append(0 if temp<=0 else 1)
+        index+=1
+    return vector
 
 def extract_next_links(url, resp):
     # Implementation required.
@@ -37,14 +64,12 @@ def extract_next_links(url, resp):
     links = []
     if url in visitedURLs:
         return links
-    else:
-        visitedURLs.append(url)
     try:
         if 399>=resp.status>=200: # redirects are code 301, 302; decide whether to limit to 300>=status
+            visitedURLs.append(url)
             parse_url = urlparse(url)
             if parse_url.netloc == urlparse(visitedURLs[-1]).netloc:
                 time.sleep(0.5)
-            extract_content(url, resp)
             if "ics.uci.edu" in parse_url.netloc:
                 if "https://"+parse_url.netloc in subdomains.keys():
                     subdomains["https://"+parse_url.netloc]+=1
@@ -52,6 +77,11 @@ def extract_next_links(url, resp):
                     subdomains["http://" + parse_url.netloc] += 1
                 else:
                     subdomains[parse_url.scheme+"://" + parse_url.netloc] += 1
+            #### Check this section for correctness and completeness
+            ####
+            extract_content(url, resp)
+            ####
+            ####
             bs = BeautifulSoup(resp.raw_response.content,'html.parser')
             for new_url in bs.find_all('a'):
                 try:
@@ -70,12 +100,20 @@ def extract_content(url, resp):
     bs = BeautifulSoup(resp.raw_response.content, 'html.parser')
     tokens_list = tokenize(bs.text)
     filtered_tokens=[token for token in tokens_list if token not in stopwords]
+    ####
+    ####
+    calc_hash=simhash(computeWordFrequencies(filtered_tokens))
+    if calc_hash in hashes:
+        return
+    else:
+        hashes.append(calc_hash)
+    ####
+    ####
     global longest_url
     if len(filtered_tokens)>longest_url[1]:
         longest_url=(url, len(filtered_tokens))
     for token in filtered_tokens:
         words_dict[token]+=1
-
 
 
 
