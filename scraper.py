@@ -18,8 +18,8 @@ stopwords = stopwords.words('english')
 
 def scraper(url, resp):
     links = extract_next_links(url, resp)
-    print(f'visited urls: {visitedURLs} {len(visitedURLs)}\nwords_dict: {sorted(words_dict.items(), key=lambda kv: -kv[1])[:50]}'
-          f'\nlongest_url: {longest_url}\n subdomains: {subdomains}')
+    '''print(f'visited urls: {visitedURLs} {len(visitedURLs)}\nwords_dict: {sorted(words_dict.items(), key=lambda kv: -kv[1])[:50]}'
+          f'\nlongest_url: {longest_url}\n subdomains: {subdomains}')'''
     with open('output.pkl', 'wb') as file:  # export global variables with pickle
         pickle.dump([visitedURLs, words_dict, longest_url, subdomains], file)
     return [link for link in links if is_valid(link)]
@@ -113,9 +113,10 @@ def is_valid(url):
             + r"|wav|avi|mov|mpeg|ram|m4v|mkv|ogg|ogv|pdf"
             + r"|ps|eps|tex|ppt|pptx|doc|docx|xls|xlsx|names"
             + r"|data|dat|exe|bz2|tar|msi|bin|7z|psd|dmg|iso"
-            + r"|epub|dll|cnf|tgz|sha1|apk"
-            + r"|thmx|mso|arff|rtf|jar|csv"
+            + r"|epub|dll|cnf|tgz|sha1|apk|java|db"
+            + r"|thmx|mso|arff|rtf|jar|csv|ppsx|sql|war"
             + r"|rm|smil|wmv|swf|wma|zip|rar|gz)$", parsed.path.lower())
+            # Updated to reflect more irrelevant/problematic file types
 
     except TypeError:
         print ("TypeError for ", parsed)
