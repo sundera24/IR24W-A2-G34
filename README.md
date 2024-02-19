@@ -1,7 +1,23 @@
+#IR24W Assignment 2
 ABOUT
 -------------------------
 This is the base implementation of a full crawler that uses a spacetime
 cache server to receive requests.
+
+GROUP MEMBERS
+-----------------------
+- Ajitesh Sunder
+  - Net ID: sundera
+  - Student ID: 28887032
+- Guillermo Gutierrez
+  - Net ID:
+  - Student ID:
+- Ryan Eurich
+  - Net ID:
+  - Student ID:
+- Christian Martinez
+  - Net ID:
+  - Student ID:
 
 CONFIGURATION
 -------------------------
