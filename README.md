@@ -14,8 +14,8 @@ GROUP MEMBERS
   - Net ID:
   - Student ID:
 - Ryan Eurich
-  - Net ID:
-  - Student ID:
+  - Net ID: reurich
+  - Student ID: 51942570
 - Christian Martinez
   - Net ID:
   - Student ID:
