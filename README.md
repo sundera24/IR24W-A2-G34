@@ -17,8 +17,8 @@ GROUP MEMBERS
   - Net ID: reurich
   - Student ID: 51942570
 - Christian Martinez
-  - Net ID:
-  - Student ID:
+  - Net ID: chrismm5
+  - Student ID: 52438605
 
 CONFIGURATION
 -------------------------
