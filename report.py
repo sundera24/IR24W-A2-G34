@@ -1,6 +1,7 @@
 import pickle
 
 with open('output.pkl', 'rb') as file:
+    # extracts and unpacks scraped content
     visitedURLs, words_dict, longest_url, subdomains = pickle.load(file)
 
 with open('report.txt', 'w') as report:

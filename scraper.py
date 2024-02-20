@@ -7,7 +7,7 @@ import pickle
 from collections import defaultdict
 from nltk.corpus import stopwords
 
-
+# Data structures for storing scraped information
 visitedURLs = []
 words_dict=defaultdict(int)
 longest_url=('',0)
@@ -64,13 +64,13 @@ def extract_next_links(url, resp):
     if url in visitedURLs:
         return links
     try:
-        if 399>=resp.status>=200: # redirects are code 301, 302; decide whether to limit to 300>=status
+        if 399>=resp.status>=200: # filters out pages with error status codes
             if resp.status < 300:
                 visitedURLs.append(url)
             parse_url = urlparse(url)
             if parse_url.netloc == urlparse(visitedURLs[-1]).netloc:
                 time.sleep(0.5)
-            if resp.status < 300:
+            if resp.status < 300: # filters and specifies domain information collected
                 if "ics.uci.edu" in parse_url.netloc:
                     if "https://" + parse_url.netloc in subdomains.keys():
                         subdomains["https://" + parse_url.netloc] += 1
@@ -100,10 +100,10 @@ def extract_content(url, resp):
     tokens_list = tokenize(clean_text)
     filtered_tokens = [token for token in tokens_list if token not in stopwords]
     filtered_tokens = [token for token in filtered_tokens if len(token) > 2]
-    if len(set(filtered_tokens)) > 10000:
+    if len(set(filtered_tokens)) > 10000: # threshold for a file to be considered too large
         return
     calc_hash=simhash(computeWordFrequencies(filtered_tokens))
-    if calc_hash in hashes:
+    if calc_hash in hashes: # detects similarity to other files using simhash
         return
     else:
         hashes.append(calc_hash)
@@ -133,14 +133,12 @@ def is_valid(url):
             return False
         if "pdf" in parsed.path or "zip" in parsed.path:
             return False
-        if not re.match(
+        if not re.match( # filters domains outside of the crawlable domains for this assignment
                 r".*\.(ics\.uci\.edu"
                 + r"|cs\.uci\.edu"
                 + r"|informatics\.uci\.edu"
                 + r"|stat\.uci\.edu)", parsed.netloc.lower()):
             return False
-
-        # Potentially temporarily filter out swiki just to examine the rest of the functionality
 
         return not re.match(
             r".*\.(css|js|bmp|gif|jpe?g|ico"
@@ -152,7 +150,7 @@ def is_valid(url):
             + r"|thmx|mso|arff|rtf|jar|csv|ppsx|sql|war"
             + r"|rm|smil|wmv|swf|wma|zip|rar|gz|odc"
             + r"|sqlite|vmdk|vhd)$", parsed.path.lower())
-        # Updated to reflect more irrelevant/problematic file types
+        # Updated from starting point to filter even more irrelevant/problematic file types
 
     except TypeError:
         print ("TypeError for ", parsed)

@@ -11,8 +11,8 @@ GROUP MEMBERS
   - Net ID: sundera
   - Student ID: 28887032
 - Guillermo Gutierrez
-  - Net ID:
-  - Student ID:
+  - Net ID: guilledg
+  - Student ID: 10918627
 - Ryan Eurich
   - Net ID: reurich
   - Student ID: 51942570
